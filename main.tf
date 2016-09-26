@@ -38,3 +38,44 @@ resource "aws_dynamodb_table" "fragments" {
     type = "S"
   }
 }
+
+## Development access to AWS resources.
+
+resource "aws_iam_user" "mpoc_api" {
+    name = "mpoc-api"
+    path = "/systems/"
+}
+
+resource "aws_iam_access_key" "mpoc_api" {
+    user = "${aws_iam_user.mpoc_api.name}"
+}
+
+resource "aws_iam_user_policy" "mpoc_api" {
+    name = "test"
+    user = "${aws_iam_user.mpoc_api.name}"
+    policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "${aws_dynamodb_table.pockets.arn}",
+        "${aws_dynamodb_table.fragments.arn}"
+      ]
+    }
+  ]
+}
+EOF
+}
